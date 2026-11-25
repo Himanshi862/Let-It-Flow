@@ -148,14 +148,3 @@ external AI API could be added later (key via environment variable); the project
 * CSRF token on every POST (including the chat API); security headers + Content-Security-Policy; private pages are not cached.
 * Edit/delete of every record type; "Delete my logs" and "Delete account" need the password.
 
-## 7. Changes from the original UI prototype
-* New visual identity: orchid/rose/peach/sage palette (your lavender kept), Fraunces + Plus Jakarta Sans, the four-colour **bloom ring** for cycle phases, soft tinted cards, mobile bottom navigation.
-* Removed fake numbers from the mock-up (e.g. "±1 day high confidence", invented lifestyle effects). All numbers now come from your data or from real test results.
-* Removed "fertile window" wording: the project must not give fertility advice. The mid-cycle phase is labelled as an educational approximation.
-* Pages added to match the spec: onboarding, daily log, prediction, intelligence, student insights, report, profile and settings.
-
-## 8. Limits to mention in your viva
-* The MySQL path uses PyMySQL and standard SQL, but automated tests here ran on SQLite — please run `python app.py` against your MySQL once and tell me if anything errors.
-* Cycle phases are day-count estimates; irregularity rules are simplified from ACOG/FIGO ranges (they are education, not diagnosis).
-* The primary survey (33 students) is far too small for statistical claims; insights from it are descriptive only.
-* Please check the reference list on the Learn page against the original sources before submission.
