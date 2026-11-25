@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Student insights{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Student lifestyle insights</h1>
+  <p>Possible links between college life (sleep, stress, exams, exercise, meals) and how you feel or how long your cycles run.</p></div></div>
+<div class="stack">
+  <div class="callout warn"><strong>Associations, not causes.</strong> These patterns show what tended to go together in your own logs. They do not prove that one thing causes another, and they are not medical facts.</div>
+
+  <div class="grid grid-3">
+    <div class="card kpi"><span class="lbl">Days with lifestyle logs</span><span class="num">{{ ins.lifestyle_days }}</span></div>
+    <div class="card kpi"><span class="lbl">Days with symptom logs</span><span class="num">{{ ins.symptom_days }}</span></div>
+    <div class="card kpi"><span class="lbl">Days with both</span><span class="num">{{ ins.paired_days }}</span><span class="lbl">need {{ ins.min_paired_days }}+ to compare</span></div>
+  </div>
+
+  <section class="card card-tint-sage">
+    <h3>From your daily logs</h3>
+    {% if ins.paired_days < ins.min_paired_days %}
+      <p class="muted mt">Not enough overlapping days yet. Log both lifestyle and symptoms on at least {{ ins.min_paired_days }} days ({{ ins.paired_days }} so far) and patterns will appear here.</p>
+      <a class="btn btn-primary btn-sm mt" href="{{ url_for('daily_log') }}">Open daily log</a>
+    {% elif not ins.daily %}
+      <p class="muted mt">We compared {{ ins.paired_days }} days and found no clear associations. That is a result too.</p>
+    {% else %}
+      <div class="stack mt">{% for r in ins.daily %}
+        <div class="finding sev-info"><div class="ico">{{ icon('leaf') }}</div><div><h4>{{ r.title }}</h4><p>{{ r.text }}{% if r.tentative %} <span class="badge badge-gold">tentative - few days</span>{% endif %}</p></div></div>
+      {% endfor %}</div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Cycle length and lifestyle</h3>
+    {% if ins.cycles_with_data < ins.min_cycles %}
+      <p class="muted mt">This needs at least {{ ins.min_cycles }} cycles that also contain lifestyle logs (you have {{ ins.cycles_with_data }}). Keep logging sleep, stress and exam days through your cycles.</p>
+    {% elif not ins.cycle_level and not ins.exam %}
+      <p class="muted mt">Across {{ ins.cycles_with_data }} cycles we found no clear link between your logged lifestyle and cycle length.</p>
+    {% endif %}
+    {% if ins.exam %}
+      <div class="finding sev-info mt"><div class="ico">{{ icon('calendar') }}</div><div><h4>Exam-period cycles vs other cycles</h4>
+        <p>Cycles that included exam days averaged {{ ins.exam.exam_mean }} days ({{ ins.exam.n_exam }} cycles), compared with {{ ins.exam.normal_mean }} days for other cycles ({{ ins.exam.n_normal }} cycles). Very few cycles, so treat it as a hint only.</p></div></div>
+    {% endif %}
+    {% for r in ins.cycle_level %}
+      <div class="finding sev-info mt"><div class="ico">{{ icon('leaf') }}</div><div><h4>{{ r.title }}</h4><p>{{ r.text }} <span class="badge badge-gold">tentative</span></p></div></div>
+    {% endfor %}
+  </section>
+
+  {% if ins.survey %}
+  {% set sv = ins.survey %}
+  <section class="card card-tint-orchid">
+    <h3>What the student survey showed</h3>
+    <p class="muted small">From our primary survey of {{ sv.n_participants }} college students (median age {{ '%.0f'|format(sv.age_median) }}). A small sample - not representative of all students, and descriptive only.</p>
+    <div class="grid grid-2 mt">
+      {% for title, key in [('How regular students described their cycles', 'regularity'), ('Symptom severity', 'symptom_severity'), ('Daily activity level', 'activity_level'), ('Preferred exercise', 'preferred_exercise')] %}
+      <div><h4 style="font-family:var(--font-sans);font-size:.95rem;font-weight:700;margin-bottom:6px">{{ title }}</h4>
+        {% for k, v in sv[key].items() %}<div class="bar-row"><span>{{ k }}</span><div class="bar-track"><div class="bar-fill" style="width:{{ (100 * v / sv.n_participants)|round|int }}%"></div></div><span>{{ v }}</span></div>{% endfor %}</div>
+      {% endfor %}
+    </div>
+    <h4 class="mt" style="font-family:var(--font-sans);font-size:.95rem;font-weight:700">Most mentioned discomforts</h4>
+    <div class="chips mt">{% for k, v in sv.period_discomforts.items() %}<span class="badge">{{ k }} · {{ v }}</span>{% endfor %}</div>
+  </section>{% endif %}
+
+  <section class="card"><h3>What to try</h3>
+    <ul class="list-clean mt"><li>Log sleep and stress on most days, even briefly. Patterns need a few weeks of entries.</li>
+      <li>Mark exam days with the exam checkbox in the daily log.</li>
+      <li>See <a href="{{ url_for('nutrition') }}">Nutrition &amp; exercise</a> for practical, low-cost ideas.</li></ul></section>
+</div>
+{% endblock %}

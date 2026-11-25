@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Cycle intelligence{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Cycle intelligence</h1>
+  <p>What your logged dates say about consistency, length, delays and gaps - explained in plain words. These are observations, never a diagnosis.</p></div>
+  <a class="btn btn-ghost" href="{{ url_for('reports') }}">{{ icon('file') }}Doctor report</a></div>
+<div class="stack">
+  <section class="status-banner {{ ana.status }}">
+    <div class="finding" style="background:none;border:0;padding:0">
+      <div class="ico" style="background:#fff;width:46px;height:46px">{{ icon({'consistent': 'check', 'some_variation': 'info', 'worth_discussing': 'alert', 'not_enough_data': 'info'}[ana.status]) }}</div>
+      <div><h3 style="font-size:1.35rem">{{ ana.status_label }}</h3><p class="muted mt" style="color:var(--ink-soft)">{{ ana.headline }}</p></div>
+    </div>
+  </section>
+
+  {% if ana.stats %}
+  <div class="grid grid-4">
+    <div class="card kpi"><span class="lbl">Average cycle</span><span class="num">{{ ana.stats.mean }} d</span><span class="lbl">median {{ '%.0f'|format(ana.stats.median) }}</span></div>
+    <div class="card kpi"><span class="lbl">Shortest - longest</span><span class="num">{{ ana.stats.shortest }}-{{ ana.stats.longest }}</span><span class="lbl">days</span></div>
+    <div class="card kpi"><span class="lbl">Variation, last 6</span><span class="num">{{ ana.stats.range_recent }} d</span><span class="lbl">gap between shortest and longest</span></div>
+    <div class="card kpi"><span class="lbl">Inside usual range</span><span class="num">{{ ana.stats.inside_range_pct }}%</span><span class="lbl">{{ ana.reference.low }}-{{ ana.reference.high }} days</span></div>
+  </div>
+  {% endif %}
+
+  {% if chart %}
+  <section class="card"><h3>Cycle length over time</h3>
+    <p class="muted small">The shaded lines show the usual range for your age ({{ ana.reference.low }}-{{ ana.reference.high }} days).</p>
+    <div class="chart-box mt"><canvas id="intChart" role="img" aria-label="Line chart of cycle lengths with usual range"></canvas></div></section>
+  <script type="application/json" id="int-data">{{ {'points': chart, 'low': ana.reference.low, 'high': ana.reference.high}|tojson }}</script>
+  {% endif %}
+
+  <section class="stack">
+    <h3>What we noticed</h3>
+    {% from "_macros.html" import finding %}
+    {% for f in ana.findings %}{{ finding(f) }}{% else %}<div class="card empty"><p>Nothing to report yet.</p></div>{% endfor %}
+  </section>
+
+  {% if ana.intervals %}
+  <section class="card"><h3>Every interval</h3>
+    <div class="table-wrap mt"><table>
+      <thead><tr><th>From</th><th>To</th><th>Days</th><th>Result</th></tr></thead>
+      <tbody>{% for i in ana.intervals|reverse %}
+        <tr><td>{{ i.start|d }}</td><td>{{ i.end|d }}</td><td><strong>{{ i.days }}</strong></td>
+          <td>{% if i.flag == 'ok' %}<span class="badge badge-sage">Within range</span>
+              {% elif i.flag == 'short' %}<span class="badge badge-gold">Shorter than usual</span>
+              {% elif i.flag == 'long' %}<span class="badge badge-gold">Longer than usual</span>
+              {% elif i.flag == 'long_gap' %}<span class="badge badge-rose">Long gap</span>
+              {% else %}<span class="badge badge-peach">Check these dates</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table></div></section>
+  {% endif %}
+
+  <div class="grid grid-2">
+    <section class="card card-tint-orchid"><h3>How we decide</h3>
+      <ul class="list-clean mt small">
+        <li>Reference range for your age: <strong>{{ ana.reference.low }}-{{ ana.reference.high }} days</strong> ({{ ana.reference.source }}).</li>
+        <li>Variation of up to about 7-9 days between your shortest and longest recent cycle is commonly seen.</li>
+        <li>No period for 90+ days, bleeding over 7 days, very heavy bleeding or severe pain are always worth a doctor's visit.</li>
+        <li>This is rule-based and cannot see anything that isn't in your logs.</li>
+      </ul></section>
+    <section class="card"><h3>Earlier snapshots</h3>
+      {% if history %}<div class="table-wrap mt"><table><thead><tr><th>Date</th><th>Status</th><th>Avg</th></tr></thead><tbody>
+        {% for h in history %}<tr><td>{{ h.analysis_date|d }}</td><td>{{ h.status|replace('_', ' ')|capitalize }}</td><td>{{ h.mean_cycle or '-' }}</td></tr>{% endfor %}</tbody></table></div>
+      {% else %}<p class="muted small mt">Each day you open this page, a snapshot is saved so you can see how your pattern changes.</p>{% endif %}</section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

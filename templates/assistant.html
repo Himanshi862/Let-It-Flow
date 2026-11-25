@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Health assistant{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Health assistant</h1>
+  <p>Ask about periods, symptoms, food and exercise. It uses only your own logs, labels what is recorded versus general information, and says when it doesn't know. It can't diagnose.</p></div></div>
+<div class="chat-layout">
+  <aside class="card chat-side">
+    <a class="btn btn-primary btn-sm" href="{{ url_for('assistant') }}">{{ icon('plus') }}New chat</a>
+    <div class="nav-group" style="margin:6px 4px 0">Your chats</div>
+    {% for c in conversations %}<a class="conv-link" href="{{ url_for('assistant', c=c.id) }}" {{ 'aria-current=true' if conv and conv.id == c.id }}><span>{{ c.title[:34] }}{{ '…' if c.title|length > 34 }}</span></a>
+    {% else %}<p class="muted small" style="padding:4px 6px">No chats yet.</p>{% endfor %}
+    {% if conv %}<form method="post" action="{{ url_for('delete_conversation', conv_id=conv.id) }}" data-confirm="Delete this conversation?">{{ csrf() }}<button class="btn btn-danger btn-sm btn-block" type="submit">{{ icon('trash') }}Delete this chat</button></form>{% endif %}
+  </aside>
+  <section class="card chat-window" data-conv="{{ conv.id if conv else '' }}" id="chat" data-csrf="{{ csrf_token() }}" data-api="{{ url_for('api_chat') }}">
+    <div class="chat-log" id="chatLog" aria-live="polite">
+      {% if not messages %}
+      <div class="bubble bot">Hi {{ snap_name }}! I can explain cycle basics and look at your own logged dates and symptoms. Try one of the questions below.</div>
+      {% endif %}
+      {% for m in messages %}<div class="bubble {{ 'user' if m.role == 'user' else 'bot' }}">{{ m.content }}</div>{% endfor %}
+    </div>
+    <div style="padding:10px 14px 0;background:#fff"><div class="chips">
+      {% for q in ['When is my next period?', 'Is my cycle regular?', 'Why am I getting cramps?', 'What should I eat during my period?', 'Why might my period be late?', 'How is my sleep and stress?'] %}
+      <button type="button" class="chip-link" data-suggest="{{ q }}">{{ q }}</button>{% endfor %}</div></div>
+    <form class="chat-form" id="chatForm" autocomplete="off">
+      <label class="sr-only" for="chatInput">Your question</label>
+      <input id="chatInput" type="text" maxlength="500" placeholder="Type your question…" required>
+      <button class="btn btn-primary" type="submit" aria-label="Send">{{ icon('send') }}Send</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

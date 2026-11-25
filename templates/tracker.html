@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Cycle tracker{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Cycle tracker</h1>
+  <p>Log the first day of each period. Past dates count too - they make your estimates and pattern analysis much better.</p></div></div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start" id="tracker-grid">
+  <section class="card">
+    <div class="cal-head">
+      <h3>{{ month_label }}</h3>
+      <div class="cal-nav">
+        <a href="{{ url_for('tracker', month=prev_month) }}" aria-label="Previous month">{{ icon('left') }}</a>
+        <a href="{{ url_for('tracker', month=next_month) }}" aria-label="Next month">{{ icon('right') }}</a>
+      </div>
+    </div>
+    <div class="cal" role="grid" aria-label="{{ month_label }}">
+      {% for n in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}<div class="dow">{{ n }}</div>{% endfor %}
+      {% for week in weeks %}{% for c in week %}
+      <a class="day {{ c.cls }}" href="{{ url_for('tracker', month=c.date.strftime('%Y-%m'), day=c.date.isoformat()) }}"
+         aria-label="{{ c.date.strftime('%d %B') }}{{ ', period' if 'period' in c.cls }}{{ ', estimated period start' if 'predicted ' in (c.cls ~ ' ') }}"
+         {{ 'aria-current=date' if 'today' in c.cls }}>{{ c.date.day }}{% if c.has_log %}<span class="logged-dot"></span>{% endif %}</a>
+      {% endfor %}{% endfor %}
+    </div>
+    <div class="cal-legend">
+      <span><i style="background:var(--rose)"></i>Logged period</span>
+      <span><i style="background:var(--rose-soft)"></i>Assumed bleeding days</span>
+      <span><i style="border:2px dashed var(--rose-deep);background:var(--peach-soft)"></i>Estimated start</span>
+      <span><i style="background:var(--peach-soft)"></i>Likely window</span>
+      <span><i style="background:var(--orchid)"></i>Has a daily log</span>
+    </div>
+  </section>
+
+  <aside class="stack">
+    <section class="card card-tint-orchid">
+      <span class="badge">{{ sel.strftime('%A') }}</span>
+      <h3 class="mt">{{ sel.strftime('%d %B %Y') }}</h3>
+      {% if sel_cycle %}<p class="mt"><span class="badge badge-rose">{{ icon('drop') }}Period started this day</span></p>{% endif %}
+      {% set s, l, f = day_info.symptoms, day_info.lifestyle, day_info.flow %}
+      {% if s or l or f %}
+      <ul class="list-clean mt small">
+        {% if f %}<li>Flow: {{ f.flow_intensity }}/5</li>{% endif %}
+        {% if s and s.pain_severity is not none %}<li>Pain: {{ s.pain_severity }}/10</li>{% endif %}
+        {% if s %}{% for k, t in [('mood','Mood changes'),('fatigue','Fatigue'),('bloating','Bloating'),('acne','Acne'),('headache','Headache')] %}{% if s[k] %}<li>{{ t }}: {{ ['none','mild','moderate','strong'][s[k]] }}</li>{% endif %}{% endfor %}{% endif %}
+        {% if l and l.sleep_hours is not none %}<li>Sleep {{ l.sleep_hours }} h</li>{% endif %}
+        {% if l and l.stress_level %}<li>Stress {{ l.stress_level }}/5</li>{% endif %}
+        {% if l and l.exam_period %}<li>Exam period</li>{% endif %}
+      </ul>
+      {% else %}<p class="muted small mt">Nothing logged for this day.</p>{% endif %}
+      <a class="btn btn-ghost btn-sm mt" href="{{ url_for('daily_log', date=sel.isoformat()) }}">{{ 'Edit' if (s or l or f) else 'Add' }} daily log</a>
+    </section>
+
+    <section class="card">
+      <h3>Add a period</h3>
+      <form method="post" action="{{ url_for('tracker_add') }}" class="stack mt">
+        {{ csrf() }}
+        <div class="field"><label for="period_start">First day of period</label><input id="period_start" name="period_start" type="date" required max="{{ today.isoformat() }}" value="{{ sel.isoformat() if sel <= today else '' }}"></div>
+        <div class="field"><label for="period_end">Last day of bleeding <span class="muted">(optional)</span></label><input id="period_end" name="period_end" type="date" max="{{ today.isoformat() }}"></div>
+        <div class="field"><label for="notes">Note <span class="muted">(optional)</span></label><input id="notes" name="notes" type="text" maxlength="200"></div>
+        <button class="btn btn-primary" type="submit">Save period</button>
+      </form>
+    </section>
+  </aside>
+</div>
+
+<section class="card mt-lg">
+  <div class="row spread"><h3>Your recorded periods</h3><span class="muted small">{{ rows|length }} entr{{ 'ies' if rows|length != 1 else 'y' }}</span></div>
+  {% if rows %}
+  <div class="table-wrap mt"><table>
+    <thead><tr><th>Start</th><th>End</th><th>Bleeding days</th><th>Cycle length before</th><th>Note</th><th><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td><strong>{{ r.period_start|d }}</strong></td><td>{{ r.period_end|d if r.period_end else '-' }}</td>
+        <td>{{ r.bleed or '-' }}</td>
+        <td>{% if r.gap %}{{ r.gap }} days{% if r.gap < 15 %} <span class="badge badge-gold">check date</span>{% elif r.gap > 60 %} <span class="badge badge-gold">long gap</span>{% endif %}{% else %}-{% endif %}</td>
+        <td class="muted">{{ r.notes or '' }}</td>
+        <td>
+          <details class="acc" style="padding:0 12px;border-radius:12px"><summary style="padding:6px 0;font-size:.85rem">Edit</summary>
+            <form method="post" action="{{ url_for('tracker_edit', cycle_id=r.id) }}" class="stack" style="padding:6px 0 12px;min-width:220px">
+              {{ csrf() }}
+              <div class="field"><label>Start</label><input type="date" name="period_start" required max="{{ today.isoformat() }}" value="{{ r.period_start.isoformat() }}"></div>
+              <div class="field"><label>End</label><input type="date" name="period_end" max="{{ today.isoformat() }}" value="{{ r.period_end.isoformat() if r.period_end else '' }}"></div>
+              <div class="field"><label>Note</label><input type="text" name="notes" maxlength="200" value="{{ r.notes or '' }}"></div>
+              <button class="btn btn-primary btn-sm" type="submit">Update</button>
+            </form>
+          </details>
+          <form method="post" action="{{ url_for('tracker_delete', cycle_id=r.id) }}" data-confirm="Delete this period entry?">
+            {{ csrf() }}<button class="btn btn-danger btn-sm" type="submit" style="margin-top:6px">{{ icon('trash') }}Delete</button></form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% else %}
+  <div class="empty"><h3>No periods recorded yet</h3><p>Add the first day of your latest period above. Earlier ones help even more.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

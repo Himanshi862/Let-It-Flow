@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Settings and privacy</h1><p>You control your data. Your records are only available to your own logged-in account.</p></div></div>
+<div class="stack">
+  <section class="card"><h3>Change password</h3>
+    <form method="post" action="{{ url_for('change_password') }}" class="form-grid mt">{{ csrf() }}
+      <div class="field full"><label for="current_password">Current password</label><input id="current_password" name="current_password" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="new_password">New password</label><input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div class="field"><label for="new_password2">Repeat new password</label><input id="new_password2" name="new_password2" type="password" autocomplete="new-password" required></div>
+      <div class="full"><button class="btn btn-primary" type="submit">Update password</button></div></form></section>
+
+  <section class="card"><h3>Your data</h3><p class="muted mt">Download everything you've entered as a spreadsheet-friendly file.</p>
+    <a class="btn btn-ghost mt" href="{{ url_for('report_csv') }}">{{ icon('download') }}Export my data (CSV)</a></section>
+
+  <section class="card card-tint-orchid"><h3>About the model</h3>
+    <p class="muted mt small">The next-period estimate uses a model trained on the Kaggle FedCycle dataset (adult participants, median age about 31). It was not trained on Indian college students and is not a medical device.{% if metrics %} Training cleaned {{ metrics.data_cleaning.rows_clean }} cycles from {{ metrics.data_cleaning.participants_clean }} participants.{% endif %}</p></section>
+
+  <section class="card card-tint-rose"><h3>Delete my logs</h3>
+    <p class="muted mt small">Removes all period dates, daily logs, analysis snapshots and chat history. Your account and profile stay.</p>
+    <form method="post" action="{{ url_for('delete_logs') }}" class="row mt" data-confirm="Delete ALL your period dates, logs and chats? This cannot be undone.">{{ csrf() }}
+      <label class="sr-only" for="pw1">Password</label><input id="pw1" name="password" type="password" placeholder="Enter password to confirm" required style="max-width:280px">
+      <button class="btn btn-danger" type="submit">{{ icon('trash') }}Delete my logs</button></form></section>
+
+  <section class="card"><h3>Delete my account</h3>
+    <p class="muted mt small">Permanently deletes your account and every record linked to it.</p>
+    <form method="post" action="{{ url_for('delete_account') }}" class="row mt" data-confirm="Permanently delete your account?">{{ csrf() }}
+      <input name="confirm" type="text" placeholder="Type DELETE" required style="max-width:180px" aria-label="Type DELETE to confirm">
+      <input name="password" type="password" placeholder="Password" required style="max-width:220px" aria-label="Password">
+      <button class="btn btn-danger" type="submit">Delete account</button></form></section>
+</div>
+{% endblock %}

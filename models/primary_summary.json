@@ -1,0 +1,60 @@
+{
+  "n_participants": 33,
+  "age_median": 22.0,
+  "regularity": {
+    "Regular": 19,
+    "Slightly irregular": 12,
+    "Highly irregular": 2
+  },
+  "symptom_severity": {
+    "Moderate": 13,
+    "Severe": 11,
+    "Mild": 9
+  },
+  "diet": {
+    "Vegetarian": 25,
+    "Non-Vegetarian": 7,
+    "Eggetarian": 1
+  },
+  "preferred_exercise": {
+    "Walking only": 17,
+    "Light Yoga / Stretching": 7,
+    "Gym / Strength Training": 5,
+    "Home Bodyweight Exercises / Pilates": 3,
+    "Cardio / Running / Cycling": 1
+  },
+  "activity_level": {
+    "Sedentary": 19,
+    "Moderately Active": 9,
+    "Highly Active": 5
+  },
+  "bleeding_duration": {
+    "4\u20135 days": 19,
+    "2\u20133 days": 9,
+    "6\u20137 days": 4,
+    "8+ days": 1
+  },
+  "period_discomforts": {
+    "Lower abdominal cramps": 26,
+    "Fatigue / Low energy": 23,
+    "Lower back pain": 22,
+    "Headaches / Nausea": 8
+  },
+  "activity_vs_severity": {
+    "Highly Active": {
+      "Mild": 1,
+      "Moderate": 2,
+      "Severe": 2
+    },
+    "Moderately Active": {
+      "Mild": 3,
+      "Moderate": 4,
+      "Severe": 2
+    },
+    "Sedentary": {
+      "Mild": 5,
+      "Moderate": 7,
+      "Severe": 7
+    }
+  }
+}

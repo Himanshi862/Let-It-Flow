@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, level_select %}
+{% block title %}Daily log{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Daily log</h1>
+  <p>Fill in only what you want. Every field is optional, and you can come back to a day and change it.</p></div>
+  <form method="get" class="row"><label class="sr-only" for="date">Date</label><input id="date" type="date" name="date" max="{{ today.isoformat() }}" value="{{ log_date.isoformat() }}" style="width:auto"><button class="btn btn-ghost btn-sm" type="submit">Go to date</button></form>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start" id="log-grid">
+<form method="post" class="stack">
+  {{ csrf() }}<input type="hidden" name="date" value="{{ log_date.isoformat() }}">
+  <section class="card card-tint-rose">
+    <h3>Body and period · {{ log_date.strftime('%d %B %Y') }}</h3>
+    <div class="form-grid mt">
+      <div class="field"><label for="flow">Bleeding / flow</label>
+        <select id="flow" name="flow"><option value="">No bleeding / not logged</option>
+          {% for v, t in [(1, '1 · Spotting'), (2, '2 · Light'), (3, '3 · Medium'), (4, '4 · Heavy'), (5, '5 · Very heavy')] %}<option value="{{ v }}" {{ 'selected' if f.flow_intensity == v }}>{{ t }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="pain_severity">Pain (0 none - 10 worst)</label>
+        <div class="range-row"><input id="pain_severity" name="pain_severity" type="range" min="0" max="10" value="{{ s.pain_severity if s.pain_severity is not none else 0 }}" data-range-out="painOut"><output id="painOut">{{ s.pain_severity if s.pain_severity is not none else 0 }}</output></div>
+        <label class="check small"><input type="checkbox" id="painUnset" {{ 'checked' if s.pain_severity is none }}> Don't log pain</label></div>
+      {{ level_select('mood', 'Mood changes', s.mood) }}
+      {{ level_select('fatigue', 'Fatigue', s.fatigue) }}
+      {{ level_select('bloating', 'Bloating', s.bloating) }}
+      {{ level_select('acne', 'Acne', s.acne) }}
+      {{ level_select('headache', 'Headache', s.headache) }}
+      <div class="field full"><label for="notes">Notes</label><textarea id="notes" name="notes" maxlength="250" rows="2">{{ s.notes or '' }}</textarea></div>
+    </div>
+  </section>
+  <section class="card card-tint-sage">
+    <h3>Lifestyle</h3>
+    <p class="muted small">Helps Student insights spot links between daily life and how you feel.</p>
+    <div class="form-grid mt">
+      <div class="field"><label for="sleep_hours">Sleep last night (hours)</label><input id="sleep_hours" name="sleep_hours" type="number" step="0.5" min="0" max="24" value="{{ l.sleep_hours if l.sleep_hours is not none }}"></div>
+      <div class="field"><label for="stress_level">Stress today</label>
+        <select id="stress_level" name="stress_level"><option value="">Not logged</option>
+          {% for v, t in [(1, '1 · Very calm'), (2, '2 · Mild'), (3, '3 · Moderate'), (4, '4 · High'), (5, '5 · Very high')] %}<option value="{{ v }}" {{ 'selected' if l.stress_level == v }}>{{ t }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="exercise_minutes">Exercise (minutes)</label><input id="exercise_minutes" name="exercise_minutes" type="number" min="0" max="600" value="{{ l.exercise_minutes if l.exercise_minutes is not none }}"></div>
+      <div class="field"><label for="exercise_type">Type of exercise</label><input id="exercise_type" name="exercise_type" type="text" maxlength="60" placeholder="e.g. brisk walk" value="{{ l.exercise_type or '' }}"></div>
+      <div class="field"><label for="meals_skipped">Meals skipped today</label>
+        <select id="meals_skipped" name="meals_skipped"><option value="">Not logged</option>{% for v in range(0, 4) %}<option value="{{ v }}" {{ 'selected' if l.meals_skipped == v }}>{{ v }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="water_litres">Water (litres)</label><input id="water_litres" name="water_litres" type="number" step="0.5" min="0" max="10" value="{{ l.water_litres if l.water_litres is not none }}"></div>
+      <label class="check full"><input type="checkbox" name="exam_period" value="1" {{ 'checked' if l.exam_period }}> This is an exam or deadline period</label>
+      <div class="field full"><label for="life_note">Routine changes</label><input id="life_note" name="life_note" type="text" maxlength="200" placeholder="e.g. travelled home, late nights" value="{{ l.note or '' }}"></div>
+    </div>
+  </section>
+  <div class="row"><button class="btn btn-primary" type="submit">Save log for {{ log_date.strftime('%d %b') }}</button></div>
+</form>
+
+<aside class="stack">
+  <section class="card">
+    <h3>Recent days</h3>
+    {% if recent %}<ul class="list-clean mt">{% for d in recent %}<li><a href="{{ url_for('daily_log', date=d.isoformat()) }}">{{ d|d }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="muted small mt">No entries yet. Your first one will show up here.</p>{% endif %}
+  </section>
+  {% if day.flow or day.symptoms or day.lifestyle %}
+  <section class="card">
+    <h3>Delete this day</h3><p class="muted small mt">Removes flow, symptoms and lifestyle entries for {{ log_date|d }}.</p>
+    <form method="post" action="{{ url_for('delete_log') }}" data-confirm="Delete everything logged on this day?">{{ csrf() }}<input type="hidden" name="date" value="{{ log_date.isoformat() }}"><button class="btn btn-danger btn-sm mt" type="submit">{{ icon('trash') }}Delete day</button></form>
+  </section>{% endif %}
+</aside>
+</div>
+{% endblock %}

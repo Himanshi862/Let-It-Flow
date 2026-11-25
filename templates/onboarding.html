@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Set up{% endblock %}
+{% block public %}
+<div class="public" style="padding:24px 16px 60px">
+  <div style="max-width:720px;margin:0 auto">
+    <a class="brand" href="{{ url_for('dashboard') }}"><svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#bloom"/></svg><span class="brand-name">Let It Flow</span></a>
+    <div class="steps mt" aria-label="Step {{ step }} of {{ steps }}">{% for i in range(1, steps + 1) %}<i class="{{ 'done' if i <= step }}"></i>{% endfor %}</div>
+
+    <form method="post" class="card stack" action="{{ url_for('onboarding', step=step) }}">
+      {{ csrf() }}
+      {% if step == 1 %}
+        <div><span class="badge">Step 1 of {{ steps }}</span><h1 class="mt" style="font-size:2rem">When did your periods start?</h1>
+          <p class="muted mt">Add the first day of your latest period and as many earlier ones as you remember - 3 to 6 months is ideal. More dates mean better estimates.</p></div>
+        {% if cycles %}<div class="callout">You already have {{ cycles|length }} date(s) saved. Add more below or continue.</div>{% endif %}
+        <div class="date-grid">
+          {% for i in range(6) %}
+          <div class="field"><label for="d{{ i }}">{{ 'Most recent period' if i == 0 else 'Earlier period ' ~ i }}</label>
+            <input id="d{{ i }}" type="date" name="past_dates" max="{{ today.isoformat() }}"></div>
+          {% endfor %}
+        </div>
+        <div class="optional-note"><strong>Why we ask:</strong> your period start dates are what Let It Flow uses to calculate cycle length, spot patterns and estimate your next period. Not sure of a date? Leave it empty.</div>
+      {% elif step == 2 %}
+        <div><span class="badge">Step 2 of {{ steps }}</span><h1 class="mt" style="font-size:2rem">About your cycle</h1>
+          <p class="muted mt">All optional. If you don't know, skip it - we calculate from your dates anyway.</p></div>
+        <div class="form-grid">
+          <div class="field"><label for="typical_cycle_length">Typical cycle length (days)</label>
+            <input id="typical_cycle_length" name="typical_cycle_length" type="number" min="15" max="90" value="{{ profile.typical_cycle_length or '' }}">
+            <span class="hint">First day of one period to the first day of the next.</span></div>
+          <div class="field"><label for="period_duration">How many days does bleeding last?</label>
+            <input id="period_duration" name="period_duration" type="number" min="1" max="15" value="{{ profile.period_duration or '' }}"></div>
+          <div class="field"><label for="self_regularity">How regular do your periods feel?</label>
+            <select id="self_regularity" name="self_regularity">
+              <option value="">Not sure</option>
+              {% for v, t in [('regular', 'Regular - within 1-2 days'), ('slightly_irregular', 'Slightly irregular - varies by 3-7 days'), ('highly_irregular', 'Highly irregular')] %}
+              <option value="{{ v }}" {{ 'selected' if profile.self_regularity == v }}>{{ t }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="has_missed_periods">Missed periods or long gaps?</label>
+            <select id="has_missed_periods" name="has_missed_periods">
+              <option value="">Prefer not to say</option>
+              <option value="no" {{ 'selected' if profile.has_missed_periods == 0 }}>No</option>
+              <option value="yes" {{ 'selected' if profile.has_missed_periods == 1 }}>Yes</option>
+            </select></div>
+        </div>
+        <div class="optional-note"><strong>Why we ask:</strong> your own description helps the first estimates while you have few logged cycles, and helps us flag patterns worth a doctor's attention.</div>
+      {% else %}
+        <div><span class="badge">Step 3 of {{ steps }}</span><h1 class="mt" style="font-size:2rem">Your college routine</h1>
+          <p class="muted mt">These shape your food and exercise ideas and the lifestyle insights. Skip anything you like.</p></div>
+        <div class="form-grid">
+          <div class="field"><label for="residence">Where do you live?</label>
+            <select id="residence" name="residence"><option value="">Prefer not to say</option>
+              <option value="hostel" {{ 'selected' if profile.residence == 'hostel' }}>Hostel</option>
+              <option value="day_scholar" {{ 'selected' if profile.residence == 'day_scholar' }}>Day scholar</option></select></div>
+          <div class="field"><label for="sleep_routine">Sleep routine</label>
+            <select id="sleep_routine" name="sleep_routine"><option value="">Not sure</option>
+              {% for v, t in [('regular', 'Fairly regular'), ('irregular', 'Irregular'), ('night_owl', 'Often up late')] %}<option value="{{ v }}" {{ 'selected' if profile.sleep_routine == v }}>{{ t }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="attendance_impact">Do periods affect attendance or daily activities?</label>
+            <select id="attendance_impact" name="attendance_impact"><option value="">Not sure</option>
+              {% for v, t in [('never', 'Not really'), ('sometimes', 'Sometimes'), ('often', 'Often')] %}<option value="{{ v }}" {{ 'selected' if profile.attendance_impact == v }}>{{ t }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="diet_type">Dietary preference</label>
+            <select id="diet_type" name="diet_type"><option value="">Not set</option>
+              {% for v, t in [('vegetarian', 'Vegetarian'), ('eggetarian', 'Eggetarian'), ('non_vegetarian', 'Non-vegetarian'), ('vegan', 'Vegan')] %}<option value="{{ v }}" {{ 'selected' if diet.diet_type == v }}>{{ t }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="dislikes">Foods you'd rather not see</label>
+            <input id="dislikes" name="dislikes" type="text" maxlength="200" placeholder="e.g. mushrooms, upma" value="{{ diet.dislikes or '' }}"></div>
+          <div class="field"><label for="skips_meals_often">Do you often skip meals?</label>
+            <select id="skips_meals_often" name="skips_meals_often"><option value="">Prefer not to say</option>
+              <option value="no" {{ 'selected' if diet.skips_meals_often == 0 }}>No</option><option value="yes" {{ 'selected' if diet.skips_meals_often == 1 }}>Yes</option></select></div>
+          <div class="field"><label for="preferred_exercise">Preferred exercise</label>
+            <select id="preferred_exercise" name="preferred_exercise"><option value="">Not set</option>
+              {% for v, t in [('walking', 'Walking'), ('yoga', 'Yoga / stretching'), ('gym', 'Gym / strength'), ('home', 'Home workouts / pilates'), ('cardio', 'Cardio / running / cycling')] %}<option value="{{ v }}" {{ 'selected' if exercise.preferred_exercise == v }}>{{ t }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="activity_level">Daily activity level</label>
+            <select id="activity_level" name="activity_level"><option value="">Not set</option>
+              {% for v, t in [('sedentary', 'Mostly sitting'), ('moderate', 'Moderately active (2-3 workouts a week)'), ('high', 'Very active (4+ a week)')] %}<option value="{{ v }}" {{ 'selected' if exercise.activity_level == v }}>{{ t }}</option>{% endfor %}</select></div>
+        </div>
+        <div class="optional-note"><strong>Why we ask:</strong> so food and exercise suggestions fit your diet and routine, and so the app can look for gentle links between lifestyle and symptoms.</div>
+      {% endif %}
+      <div class="row spread">
+        <button class="btn btn-ghost" type="submit" name="action" value="skip">Skip this step</button>
+        <button class="btn btn-primary" type="submit" name="action" value="save">{{ 'Finish' if step == steps else 'Save and continue' }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Nutrition &amp; exercise{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Nutrition &amp; exercise</h1>
+  <p>Affordable everyday ideas shaped by your diet preference, cycle phase and what you've logged. General wellness guidance, not a treatment plan.</p></div></div>
+<div class="stack">
+  <nav class="tabs" aria-label="Cycle phase">
+    {% for key, label in PHASES.items() %}<a class="chip-link" href="{{ url_for('nutrition', phase=key, exclude=exclude) }}" {{ 'aria-current=true' if key == phase }}><i class="dot dot-{{ key }}"></i>{{ label }}{% if key == snap.phase %} · now{% endif %}</a>{% endfor %}
+  </nav>
+  {% if not rec.diet_known %}<div class="callout warn">Set your dietary preference in <a href="{{ url_for('profile') }}">Profile</a> so suggestions match what you eat. Until then we assume vegetarian.</div>{% endif %}
+
+  <div class="grid grid-2">
+    <section class="card card-tint-gold">
+      <span class="badge badge-gold">Eat · {{ rec.diet_label }}</span>
+      <h2 class="mt">{{ rec.diet_title }}</h2><p class="muted mt">{{ rec.diet_text }}</p>
+      {% if rec.foods %}<ul class="list-clean list-gold mt">{% for f in rec.foods %}<li>{{ f }}</li>{% endfor %}</ul>
+      {% else %}<p class="muted mt">No suggestions match your filters. Try removing a disliked food.</p>{% endif %}
+      <form method="get" class="row mt"><input type="hidden" name="phase" value="{{ phase }}">
+        <label class="sr-only" for="exclude">Skip foods containing</label>
+        <input id="exclude" name="exclude" type="text" placeholder="Skip foods containing… e.g. paneer" value="{{ exclude }}" style="flex:1;min-width:180px" maxlength="120">
+        <button class="btn btn-ghost btn-sm" type="submit">Apply</button></form>
+    </section>
+    <section class="card card-tint-sage">
+      <span class="badge badge-sage">Move</span>
+      <h2 class="mt">{{ rec.ex_title }}</h2><p class="muted mt">{{ rec.ex_text }}</p>
+      <ul class="list-clean list-sage mt">{% for e in rec.exercises %}<li>{{ e }}</li>{% endfor %}</ul>
+      <p class="mt small"><strong>Intensity:</strong> {{ rec.intensity }}</p>
+    </section>
+  </div>
+
+  {% if rec.reasons or rec.tips %}
+  <section class="card">
+    <h3>Why these suggestions</h3>
+    {% if rec.reasons %}<p class="muted small mt">From your recent logs:</p><ul class="list-clean mt">{% for r in rec.reasons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+    <div class="divider mt"></div>
+    <ul class="list-clean mt">{% for t in rec.tips %}<li>{{ t }}</li>{% endfor %}</ul>
+  </section>{% endif %}
+  <div class="callout">These ideas use common, low-cost Indian foods and free activities. They are general wellness suggestions - for medical conditions, allergies or special diets, please follow your doctor's advice.</div>
+</div>
+{% endblock %}

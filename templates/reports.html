@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Doctor report{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Doctor-ready report</h1>
+  <p>A clear summary of your history you can print or show at an appointment. Automated parts are labelled as estimates and observations, never diagnoses.</p></div></div>
+<div class="grid grid-2" style="align-items:start">
+  <section class="card card-tint-rose">
+    <h3>What's inside</h3>
+    <ul class="list-clean mt">
+      <li>Your recorded period dates and cycle intervals, with a chart</li>
+      <li>Average, shortest, longest and variation</li>
+      <li>Observed patterns and anything worth discussing</li>
+      <li>Recent symptoms, pain and flow, plus a lifestyle summary</li>
+      <li>Your next-period estimate, with the method and its limits</li>
+    </ul>
+    <div class="row mt"><a class="btn btn-primary" href="{{ url_for('report_pdf') }}">{{ icon('download') }}Download PDF</a>
+      <a class="btn btn-ghost" href="{{ url_for('report_csv') }}">{{ icon('download') }}My data (CSV)</a></div>
+  </section>
+  <section class="card">
+    <h3>Right now your report would show</h3>
+    <ul class="list-clean mt">
+      <li>{{ snap.cycles|length }} recorded period date{{ 's' if snap.cycles|length != 1 }}</li>
+      <li>Pattern status: <strong>{{ ana.status_label }}</strong></li>
+      <li>{{ snap.symptoms|length }} symptom day{{ 's' if snap.symptoms|length != 1 }} and {{ snap.lifestyle|length }} lifestyle day{{ 's' if snap.lifestyle|length != 1 }}</li>
+      <li>{% if pred.available %}Estimated next period around {{ pred.next_start|d }}{% else %}No estimate yet (needs more dates){% endif %}</li>
+    </ul>
+    {% if snap.cycles|length < 4 %}<div class="callout warn mt">A report with at least 4 recorded period dates is much more useful to a doctor.</div>{% endif %}
+  </section>
+</div>
+{% endblock %}

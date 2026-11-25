@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+{% block public %}
+<div class="public" style="display:grid;place-items:center;min-height:100vh;padding:24px">
+  <div class="card" style="max-width:480px;text-align:center">
+    <svg class="brand-mark" viewBox="0 0 48 48" style="width:64px;height:64px" aria-hidden="true"><use href="#bloom"/></svg>
+    <h2 class="mt">{{ message }}</h2>
+    <p class="muted mt">Error {{ code }}</p>
+    <a class="btn btn-primary mt" href="{{ url_for('landing') }}">Back to Let It Flow</a>
+  </div>
+</div>
+{% endblock %}

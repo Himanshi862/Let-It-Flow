@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, legend, csrf %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 style="font-size:clamp(1.8rem,3vw,2.5rem)">{{ greeting }}, {{ current_user.name.split(' ')[0] }}</h1>
+    <p>{{ today.strftime('%A, %d %B') }}</p></div>
+  <div class="row">
+    <form method="post" action="{{ url_for('tracker_start_today') }}">{{ csrf() }}<button class="btn btn-rose" type="submit">{{ icon('drop') }}My period started today</button></form>
+    <a class="btn btn-ghost" href="{{ url_for('daily_log') }}">{{ icon('pencil') }}Daily log</a>
+  </div>
+</div>
+
+<div class="stack">
+  <section class="hero-card" aria-label="Cycle overview">
+    {% if dial %}
+    <div class="hero-inner">
+      <div>
+        {% set late = pred.days_late %}
+        {{ ring(dial, 'Day ' ~ snap.cycle_day, ('about ' ~ PHASES[snap.phase].lower() ~ ' phase') if snap.phase else '') }}
+      </div>
+      <div>
+        <span class="badge">{{ icon('drop') }}{{ PHASES[snap.phase] }} phase (approx.)</span>
+        <h2 class="mt">
+          {% if not pred.available %}Add more dates to see an estimate
+          {% elif pred.days_late %}Your period may be running late
+          {% elif pred.days_until == 0 %}Your period may start today
+          {% else %}Next period in about {{ pred.days_until }} day{{ 's' if pred.days_until != 1 }}{% endif %}
+        </h2>
+        {% if pred.available %}
+        <p class="muted mt">Likely window {{ pred.range_start|ds }} - {{ pred.range_end|ds }} · confidence {{ pred.confidence }} · based on {{ pred.n_usable }} logged cycle{{ 's' if pred.n_usable != 1 }}</p>
+        {% if pred.days_late %}<p class="muted mt">It's {{ pred.days_late }} day{{ 's' if pred.days_late != 1 }} past the estimated date. Stress, travel and routine changes are common reasons.</p>{% endif %}
+        {% else %}<p class="muted mt">{{ pred.notes[0] if pred.notes else '' }}</p>{% endif %}
+        <details>
+          <summary>How is this estimated?</summary>
+          <p>{% if pred.available %}{{ pred.method_label }}. {% endif %}{% for n in pred.notes %}{{ n }} {% endfor %}It is an estimate, not a promise. <a href="{{ url_for('prediction_page') }}" style="color:#fff">See the full explanation</a>.</p>
+        </details>
+        {{ legend() }}
+      </div>
+    </div>
+    {% else %}
+    <div class="hero-inner">
+      <div><svg viewBox="0 0 48 48" width="120" height="120" aria-hidden="true"><use href="#bloom"/></svg></div>
+      <div>
+        <h2>Let's find your rhythm</h2>
+        <p class="muted mt">Add the first day of your latest period (and earlier ones if you remember) and your cycle ring, estimate and pattern analysis appear here.</p>
+        <div class="row mt"><a class="btn btn-ghost" href="{{ url_for('tracker') }}">Add period dates</a></div>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <h3>How are you today?</h3>
+      <p class="muted small">Tap what applies. You can add detail in the full daily log.</p>
+      {% if today_log.symptoms %}<p class="badge badge-sage mt">{{ icon('check') }}Today's check-in is saved. Saving again updates it.</p>{% endif %}
+      <form method="post" action="{{ url_for('quick_log') }}" class="stack mt">
+        {{ csrf() }}
+        <div class="chips">
+          {% for key, label in [('fatigue', 'Tired'), ('bloating', 'Bloated'), ('headache', 'Headache'), ('mood', 'Mood changes'), ('acne', 'Breakout')] %}
+          <label class="chip"><input type="checkbox" name="sym" value="{{ key }}" {{ 'checked' if today_log.symptoms and today_log.symptoms[key] and today_log.symptoms[key] >= 2 }}><span>{{ label }}</span></label>
+          {% endfor %}
+        </div>
+        <div class="field"><label for="pain">Period pain right now</label>
+          <select id="pain" name="pain"><option value="">Not logged</option>
+            {% for v, t in [(0, 'None'), (2, 'Mild'), (5, 'Moderate'), (7, 'Strong'), (9, 'Severe')] %}<option value="{{ v }}" {{ 'selected' if today_log.symptoms and today_log.symptoms.pain_severity == v }}>{{ t }} ({{ v }}/10)</option>{% endfor %}</select></div>
+        <button class="btn btn-primary" type="submit">Save check-in</button>
+      </form>
+    </section>
+
+    <section class="card card-tint-orchid">
+      <div class="row spread"><h3>Your pattern</h3><a class="small" href="{{ url_for('intelligence') }}">Details</a></div>
+      {% if analysis.status == 'not_enough_data' %}
+        <p class="muted mt">{{ analysis.headline or 'Add a few more past period start dates to see your pattern.' }}</p>
+        <a class="btn btn-ghost btn-sm mt" href="{{ url_for('tracker') }}">Add dates</a>
+      {% else %}
+        <div class="kpi mt"><span class="num">{{ analysis.stats.mean }} days</span><span class="lbl">average cycle over {{ analysis.stats.n_cycles }} cycles</span></div>
+        <p class="mt"><span class="badge {{ {'consistent': 'badge-sage', 'some_variation': 'badge-gold', 'worth_discussing': 'badge-rose'}.get(analysis.status, '') }}">{{ analysis.status_label }}</span></p>
+        <p class="muted small mt">{{ analysis.headline }}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="grid grid-3">
+    <section class="card card-tint-sage"><span class="badge badge-sage">Move</span>
+      <h3 class="mt">{{ rec.ex_title }}</h3><p class="muted small mt">{{ rec.exercises[0] }}. Aim for {{ rec.intensity }}.</p>
+      <a class="small" href="{{ url_for('nutrition') }}">More ideas</a></section>
+    <section class="card card-tint-gold"><span class="badge badge-gold">Eat</span>
+      <h3 class="mt">{{ rec.diet_title }}</h3><p class="muted small mt">{{ rec.foods[0] if rec.foods else 'Set your dietary preference for tailored ideas.' }}</p>
+      <a class="small" href="{{ url_for('nutrition') }}">More ideas</a></section>
+    <section class="card"><span class="badge">Last lifestyle log</span>
+      {% if last_life %}
+      <h3 class="mt">{{ last_life.log_date|d }}</h3>
+      <p class="muted small mt">{% if last_life.sleep_hours is not none %}Sleep {{ last_life.sleep_hours }} h{% endif %}{% if last_life.stress_level %} · stress {{ last_life.stress_level }}/5{% endif %}{% if last_life.exercise_minutes %} · {{ last_life.exercise_minutes }} min exercise{% endif %}{% if last_life.exam_period %} · exam period{% endif %}</p>
+      {% else %}<h3 class="mt">Nothing logged yet</h3><p class="muted small mt">Sleep, stress and exercise logs unlock your insights.</p>{% endif %}
+      <a class="small" href="{{ url_for('daily_log') }}">Open daily log</a></section>
+  </div>
+
+  <section class="card row spread" style="background:linear-gradient(120deg,var(--lilac),var(--rose-soft))">
+    <div><h3>Ask the health assistant</h3><p class="muted small mt">It knows your logged dates and symptoms, and says so when it doesn't know something.</p></div>
+    <a class="btn btn-primary" href="{{ url_for('assistant') }}">{{ icon('chat') }}Start a chat</a>
+  </section>
+</div>
+{% endblock %}

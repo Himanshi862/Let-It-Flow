@@ -1,0 +1,42 @@
+{# Reusable pieces #}
+{% macro ring(dial, big, small) %}
+{# The "bloom ring": four coloured arcs = the four cycle phases; the white dot = today. #}
+<div class="ring-wrap" role="img" aria-label="Cycle ring. {{ big }}. {{ small }}">
+  <svg viewBox="0 0 160 160">
+    <circle cx="80" cy="80" r="66" fill="none" stroke="#F1ECF9" stroke-width="14"/>
+    {% for a in dial.arcs %}
+    <circle cx="80" cy="80" r="66" fill="none" stroke="var(--phase-{{ a.key }})" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="{{ a.dash }} {{ a.gap }}" stroke-dashoffset="{{ a.offset }}" transform="rotate(-90 80 80)"/>
+    {% endfor %}
+    {% if dial.marker %}
+    <circle cx="{{ dial.marker.x }}" cy="{{ dial.marker.y }}" r="10" fill="#fff" stroke="#2B1B3D" stroke-width="3.5"/>
+    {% endif %}
+  </svg>
+  <div class="ring-center"><div class="ring-day">{{ big }}</div><div class="ring-sub">{{ small }}</div></div>
+</div>
+{% endmacro %}
+
+{% macro legend() %}
+<div class="legend">
+  <span><i class="dot dot-menstrual"></i>Menstrual</span><span><i class="dot dot-follicular"></i>Follicular</span>
+  <span><i class="dot dot-ovulatory"></i>Mid-cycle</span><span><i class="dot dot-luteal"></i>Luteal</span>
+</div>
+{% endmacro %}
+
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro level_select(name, label, current) %}
+<div class="field"><label for="{{ name }}">{{ label }}</label>
+  <select id="{{ name }}" name="{{ name }}">
+    {% for v, t in [('', 'Not logged'), (0, 'None'), (1, 'Mild'), (2, 'Moderate'), (3, 'Strong')] %}
+    <option value="{{ v }}" {{ 'selected' if current is not none and v != '' and current == v }}>{{ t }}</option>
+    {% endfor %}
+  </select></div>
+{% endmacro %}
+
+{% macro finding(f) %}
+<div class="finding sev-{{ f.severity }}">
+  <div class="ico">{{ icon({'good': 'check', 'info': 'info', 'notice': 'alert', 'talk': 'alert'}[f.severity]) }}</div>
+  <div><h4>{{ f.title }}</h4><p>{{ f.text }}</p></div>
+</div>
+{% endmacro %}

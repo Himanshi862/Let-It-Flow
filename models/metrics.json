@@ -1,0 +1,136 @@
+{
+  "data_cleaning": {
+    "rows_raw": 1665,
+    "participants_raw": 159,
+    "exact_duplicate_rows_removed": 12,
+    "conflicting_cycle_rows_removed": 8,
+    "rows_clean": 1645,
+    "participants_clean": 159
+  },
+  "models": {
+    "lags2": {
+      "n_lags": 2,
+      "n_rows": 1339,
+      "n_participants": 133,
+      "train_participants": 106,
+      "test_participants": 27,
+      "test_rows": 277,
+      "cv_scores": {
+        "ridge": {
+          "cv_mae": 2.149358709785419,
+          "cv_rmse": 3.1210824746231047
+        },
+        "random_forest": {
+          "cv_mae": 2.193525813190785,
+          "cv_rmse": 3.1712815645640786
+        },
+        "gradient_boosting": {
+          "cv_mae": 2.177434732033157,
+          "cv_rmse": 3.158218624713748
+        },
+        "baseline_last_cycle": {
+          "cv_mae": 2.866290018832392,
+          "cv_rmse": 4.122420439800613
+        },
+        "baseline_recent_mean": {
+          "cv_mae": 2.1884180790960452,
+          "cv_rmse": 3.1647955121972497
+        },
+        "baseline_global_median": {
+          "cv_mae": 2.803201506591337,
+          "cv_rmse": 3.932696491583765
+        }
+      },
+      "best_ml_model": "ridge",
+      "best_baseline": "baseline_recent_mean",
+      "test_scores": {
+        "ridge": {
+          "mae": 2.0072568660829013,
+          "rmse": 2.723846022352521
+        },
+        "baseline_last_cycle": {
+          "mae": 2.5306859205776173,
+          "rmse": 3.5612231703888035
+        },
+        "baseline_recent_mean": {
+          "mae": 1.9827316486161253,
+          "rmse": 2.7259554899765575
+        },
+        "baseline_global_median": {
+          "mae": 2.88086642599278,
+          "rmse": 3.7329637087094105
+        }
+      },
+      "ml_beats_best_baseline_on_test": false,
+      "ml_improvement_over_best_baseline_pct": -1.2369408378533606,
+      "interval_halfwidth_days_q80": 3.318126400492866,
+      "interval_coverage_on_test": 0.8194945848375451
+    },
+    "lags3": {
+      "n_lags": 3,
+      "n_rows": 1206,
+      "n_participants": 126,
+      "train_participants": 100,
+      "test_participants": 26,
+      "test_rows": 242,
+      "cv_scores": {
+        "ridge": {
+          "cv_mae": 2.20414226138899,
+          "cv_rmse": 3.1783535348862024
+        },
+        "random_forest": {
+          "cv_mae": 2.2526004234584667,
+          "cv_rmse": 3.242718189973821
+        },
+        "gradient_boosting": {
+          "cv_mae": 2.26293937663801,
+          "cv_rmse": 3.265211264696836
+        },
+        "baseline_last_cycle": {
+          "cv_mae": 2.882780082987552,
+          "cv_rmse": 4.1777170203443275
+        },
+        "baseline_recent_mean": {
+          "cv_mae": 2.20978561549101,
+          "cv_rmse": 3.1805656974557497
+        },
+        "baseline_global_median": {
+          "cv_mae": 2.8941908713692945,
+          "cv_rmse": 4.0322867085048735
+        }
+      },
+      "best_ml_model": "ridge",
+      "best_baseline": "baseline_recent_mean",
+      "test_scores": {
+        "ridge": {
+          "mae": 1.786730757802271,
+          "rmse": 2.5008562112204102
+        },
+        "baseline_last_cycle": {
+          "mae": 2.4545454545454546,
+          "rmse": 3.3856771726429225
+        },
+        "baseline_recent_mean": {
+          "mae": 1.822658402203857,
+          "rmse": 2.5474318168187895
+        },
+        "baseline_global_median": {
+          "mae": 2.5165289256198347,
+          "rmse": 3.3259560236230397
+        }
+      },
+      "ml_beats_best_baseline_on_test": true,
+      "ml_improvement_over_best_baseline_pct": 1.971167189537228,
+      "interval_halfwidth_days_q80": 3.3886847609226396,
+      "interval_coverage_on_test": 0.859504132231405
+    }
+  },
+  "primary_sanity_check": {
+    "participants_used": 4,
+    "note": "Very small descriptive check (not proof of accuracy).",
+    "model_mae": 3.545285024901543,
+    "baseline_last_cycle_mae": 2.75,
+    "baseline_mean_mae": 3.5
+  },
+  "training_population_note": "Trained on the Kaggle/FedCycle adult fertility-charting dataset (median age about 31). NOT trained on Indian college students."
+}

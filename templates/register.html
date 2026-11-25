@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block public %}
+<div class="auth-wrap">
+  <aside class="auth-art">
+    <a class="brand" href="{{ url_for('landing') }}"><svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#bloom"/></svg><span><span class="brand-name">Let It Flow</span><br><span class="brand-tag">Understand your cycle.</span></span></a>
+    <div><h2>Know what's normal for you.</h2><p class="mt">Four quick details to start. Everything else is optional and you can add it whenever you like.</p></div>
+    <p class="small">Your records are private to your account.</p>
+  </aside>
+  <div class="auth-form">
+    <form class="auth-card stack" method="post" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div><h1>Create your account</h1><p class="muted">Already registered? <a href="{{ url_for('login') }}">Log in</a></p></div>
+      <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" autocomplete="name" required maxlength="100" value="{{ form.get('name', '') }}"></div>
+      <div class="field"><label for="age">Age</label><input id="age" name="age" type="number" min="12" max="60" required value="{{ form.get('age', '') }}">
+        <span class="hint">Used to choose age-appropriate reference ranges for your cycle.</span></div>
+      <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required value="{{ form.get('email', '') }}"></div>
+      <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" required minlength="8">
+        <span class="hint">At least 8 characters, with letters and numbers.</span></div>
+      <div class="field"><label for="password2">Confirm password</label><input id="password2" name="password2" type="password" autocomplete="new-password" required></div>
+      <button class="btn btn-primary btn-block" type="submit">Create account</button>
+      <p class="small muted">By continuing you agree that Let It Flow gives general information, not medical advice.</p>
+    </form>
+  </div>
+</div>
+{% endblock %}

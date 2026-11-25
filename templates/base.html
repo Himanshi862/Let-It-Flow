@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %} · Let It Flow</title>
+  <meta name="theme-color" content="#8B78B8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+{% include "_sprite.html" %}
+{% with msgs = get_flashed_messages(with_categories=true) %}
+{% if msgs %}<div class="flashes" role="status" aria-live="polite">
+  {% for cat, m in msgs %}<div class="flash flash-{{ cat }}"><span>{{ m }}</span><button type="button" data-dismiss aria-label="Dismiss">&times;</button></div>{% endfor %}
+</div>{% endif %}{% endwith %}
+
+{% block public %}
+{% set ep = request.endpoint %}
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#bloom"/></svg>
+      <span><span class="brand-name">Let It Flow</span><br><span class="brand-tag">Understand your cycle.</span></span>
+    </a>
+    <nav class="nav">
+      <div class="nav-group">Every day</div>
+      <a href="{{ url_for('dashboard') }}" {{ 'aria-current=page' if ep == 'dashboard' }}>{{ icon('home') }}Dashboard</a>
+      <a href="{{ url_for('tracker') }}" {{ 'aria-current=page' if ep == 'tracker' }}>{{ icon('calendar') }}Cycle tracker</a>
+      <a href="{{ url_for('daily_log') }}" {{ 'aria-current=page' if ep == 'daily_log' }}>{{ icon('pencil') }}Daily log</a>
+      <div class="nav-group">Understand</div>
+      <a href="{{ url_for('prediction_page') }}" {{ 'aria-current=page' if ep == 'prediction_page' }}>{{ icon('spark') }}Prediction</a>
+      <a href="{{ url_for('intelligence') }}" {{ 'aria-current=page' if ep == 'intelligence' }}>{{ icon('chart') }}Cycle intelligence</a>
+      <a href="{{ url_for('insights_page') }}" {{ 'aria-current=page' if ep == 'insights_page' }}>{{ icon('leaf') }}Student insights</a>
+      <div class="nav-group">Care</div>
+      <a href="{{ url_for('nutrition') }}" {{ 'aria-current=page' if ep == 'nutrition' }}>{{ icon('bowl') }}Nutrition &amp; exercise</a>
+      <a href="{{ url_for('assistant') }}" {{ 'aria-current=page' if ep == 'assistant' }}>{{ icon('chat') }}Health assistant</a>
+      <a href="{{ url_for('learn') }}" {{ 'aria-current=page' if ep == 'learn' }}>{{ icon('book') }}Learn</a>
+      <a href="{{ url_for('reports') }}" {{ 'aria-current=page' if ep == 'reports' }}>{{ icon('file') }}Doctor report</a>
+    </nav>
+    <div class="sidebar-foot nav">
+      <a href="{{ url_for('profile') }}" {{ 'aria-current=page' if ep == 'profile' }}>{{ icon('user') }}{{ current_user.name.split(' ')[0] if current_user else 'Profile' }}</a>
+      <a href="{{ url_for('settings') }}" {{ 'aria-current=page' if ep == 'settings' }}>{{ icon('cog') }}Settings</a>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">{{ icon('logout') }}Log out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main" id="main">
+    <div class="topline"><button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-controls="sidebar">{{ icon('menu') }}</button><span class="brand-name">Let It Flow</span></div>
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<nav class="bottom-nav" aria-label="Quick navigation">
+  <a href="{{ url_for('dashboard') }}" {{ 'aria-current=page' if ep == 'dashboard' }}>{{ icon('home') }}Home</a>
+  <a href="{{ url_for('tracker') }}" {{ 'aria-current=page' if ep == 'tracker' }}>{{ icon('calendar') }}Tracker</a>
+  <a href="{{ url_for('daily_log') }}" {{ 'aria-current=page' if ep == 'daily_log' }}>{{ icon('plus') }}Log</a>
+  <a href="{{ url_for('assistant') }}" {{ 'aria-current=page' if ep == 'assistant' }}>{{ icon('chat') }}Ask</a>
+  <a href="#" id="moreBtn" role="button">{{ icon('menu') }}More</a>
+</nav>
+{% endblock %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

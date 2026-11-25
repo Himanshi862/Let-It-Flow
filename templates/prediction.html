@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Prediction{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Next period estimate</h1>
+  <p>A machine-learning estimate from your logged cycles. It is a range, not a promise.</p></div></div>
+<div class="stack">
+  {% if pred.available %}
+  <section class="hero-card">
+    <div class="hero-inner" style="gap:28px">
+      <div>
+        <span class="badge">{{ icon('spark') }}Estimate</span>
+        <h2 class="mt" style="font-size:clamp(2rem,4vw,3rem)">{{ pred.next_start.strftime('%d %B') }}</h2>
+        <p class="muted mt">Most likely between <strong style="color:#fff">{{ pred.range_start|ds }}</strong> and <strong style="color:#fff">{{ pred.range_end|ds }}</strong> (±{{ pred.halfwidth }} days)</p>
+      </div>
+      <div>
+        <div class="row"><span class="badge">Confidence: {{ pred.confidence }}</span><span class="badge">{{ pred.n_usable }} cycle{{ 's' if pred.n_usable != 1 }} used</span><span class="badge">Predicted cycle length {{ pred.predicted_length }} days</span></div>
+        <p class="muted mt small">Method: {{ pred.method_label }}.</p>
+        {% if pred.days_late %}<p class="mt">Your period appears {{ pred.days_late }} day(s) later than this estimate.</p>{% endif %}
+      </div>
+    </div>
+  </section>
+  {% else %}
+  <section class="card empty"><h3>No estimate yet</h3><p>{{ pred.notes[0] if pred.notes else 'Add period dates to get started.' }}</p>
+    <a class="btn btn-primary mt" href="{{ url_for('tracker') }}">Add period dates</a></section>
+  {% endif %}
+
+  {% if pred.notes %}<section class="card">
+    <h3>Things to know about this estimate</h3>
+    <ul class="list-clean mt">{% for n in pred.notes %}<li>{{ n }}</li>{% endfor %}</ul></section>{% endif %}
+
+  {% if history %}<section class="card"><h3>Your cycle lengths</h3><p class="muted small">Each point is the number of days between two period starts.</p>
+    <div class="chart-box mt"><canvas id="histChart" aria-label="Line chart of your cycle lengths" role="img"></canvas></div></section>
+  <script type="application/json" id="hist-data">{{ history|tojson }}</script>{% endif %}
+
+  <div class="grid grid-2">
+    <section class="card card-tint-orchid">
+      <h3>How the model works</h3>
+      <ul class="list-clean mt">
+        <li>It looks at the gaps between your last cycles, their average and how much they vary.</li>
+        <li>With 3 or more usable cycles it uses a regression model (ridge regression) saved with Joblib.</li>
+        <li>With fewer cycles it uses the average of the cycles you have, and labels the estimate low confidence.</li>
+        <li>The range comes from the model's real errors on people it had never seen.</li>
+      </ul>
+    </section>
+    <section class="card card-tint-gold">
+      <h3>Limits</h3>
+      <ul class="list-clean list-gold mt">
+        <li>Trained on the Kaggle FedCycle dataset: adults charting for fertility awareness, median age about 31 - <strong>not Indian college students</strong>.</li>
+        <li>Cycles that vary a lot are harder to predict for any method.</li>
+        <li>Cycles longer than 60 days or shorter than 15 days are left out of the estimate (but never deleted).</li>
+        <li>Never use this for contraception or fertility planning.</li>
+      </ul>
+    </section>
+  </div>
+
+  {% if m3 %}
+  <section class="card">
+    <h3>How well did it do in testing?</h3>
+    <p class="muted small">Held-out participants the model never saw during training (split by person, not by row). Lower error is better.</p>
+    <div class="table-wrap mt"><table>
+      <thead><tr><th>Method</th><th>Average error (MAE)</th><th>RMSE</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ML model ({{ m3.best_ml_model|replace('_', ' ') }})</strong></td><td>{{ '%.2f'|format(m3.test_scores[m3.best_ml_model].mae) }} days</td><td>{{ '%.2f'|format(m3.test_scores[m3.best_ml_model].rmse) }}</td></tr>
+        <tr><td>Average of recent cycles</td><td>{{ '%.2f'|format(m3.test_scores.baseline_recent_mean.mae) }} days</td><td>{{ '%.2f'|format(m3.test_scores.baseline_recent_mean.rmse) }}</td></tr>
+        <tr><td>Repeat last cycle</td><td>{{ '%.2f'|format(m3.test_scores.baseline_last_cycle.mae) }} days</td><td>{{ '%.2f'|format(m3.test_scores.baseline_last_cycle.rmse) }}</td></tr>
+        <tr><td>Same number for everyone</td><td>{{ '%.2f'|format(m3.test_scores.baseline_global_median.mae) }} days</td><td>{{ '%.2f'|format(m3.test_scores.baseline_global_median.rmse) }}</td></tr>
+      </tbody></table></div>
+    <p class="mt small"><strong>Honest reading:</strong> the model is only {{ '%.0f'|format(m3.ml_improvement_over_best_baseline_pct) }}% better than simply averaging recent cycles. Tested on {{ m3.test_participants }} people ({{ m3.test_rows }} cycles). About {{ '%.0f'|format(m3.interval_coverage_on_test * 100) }}% of real cycles fell inside the ±{{ '%.1f'|format(m3.interval_halfwidth_days_q80) }} day range.</p>
+  </section>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

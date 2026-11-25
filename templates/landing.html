@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, legend %}
+{% block title %}Understand your cycle{% endblock %}
+{% block public %}
+<div class="public">
+  <header class="pub-nav">
+    <a class="brand" href="{{ url_for('landing') }}">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#bloom"/></svg>
+      <span class="brand-name">Let It Flow</span>
+    </a>
+    <div class="row"><a class="btn btn-ghost" href="{{ url_for('login') }}">Log in</a><a class="btn btn-primary" href="{{ url_for('register') }}">Create account</a></div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="badge badge-rose">Made for college students</span>
+      <h1 class="mt">Your cycle, explained <em>in plain words.</em></h1>
+      <p class="lead">Log your periods, see how regular they really are, and get a gentle heads-up when a pattern is worth asking a doctor about. No jargon, no guessing, no judgement.</p>
+      <div class="row"><a class="btn btn-primary" href="{{ url_for('register') }}">Start tracking</a><a class="btn btn-ghost" href="{{ url_for('login') }}">I already have an account</a></div>
+      <p class="small muted mt">Free to use. You choose what to share, and you can delete everything at any time.</p>
+    </div>
+    <div class="hero-art" aria-hidden="false">
+      <svg class="petals" viewBox="0 0 400 400" aria-hidden="true">
+        <g fill="url(#gp)" opacity=".16" transform="translate(200 200)">
+          {% for r in range(0, 360, 45) %}<ellipse cx="0" cy="-92" rx="40" ry="80" transform="rotate({{ r }})"/>{% endfor %}
+        </g>
+      </svg>
+      {{ ring(dial, 'Day 12', 'example cycle') }}
+      <div class="hero-chip" style="top:36px;left:4px"><span class="muted">Next period</span><b>in about 17 days</b></div>
+      <div class="hero-chip" style="bottom:42px;right:0"><span class="muted">Pattern</span><b>Consistent</b></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="split">
+      <div>
+        <h2>See the pattern behind the dates</h2>
+        <p>Cycle Intelligence compares your cycles with age-appropriate ranges and explains what it sees: how consistent you are, whether cycles run short or long, repeated delays, and long gaps. It never diagnoses. It tells you when a pattern is worth a conversation with a doctor.</p>
+      </div>
+      <div class="panel card-tint-rose card">
+        <div class="stack">
+          <div class="finding sev-good"><div class="ico">{{ icon('check') }}</div><div><h4>Fairly consistent</h4><p>Your last 5 cycles ranged from 28 to 32 days.</p></div></div>
+          <div class="finding sev-notice"><div class="ico">{{ icon('alert') }}</div><div><h4>One longer cycle</h4><p>Stress and travel are common reasons for an occasional longer cycle.</p></div></div>
+          <p class="small muted">Example only - your own results appear after you log dates.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="split flip">
+      <div>
+        <h2>Estimates you can trust to be honest</h2>
+        <p>A machine-learning model estimates your next period from your own history. It shows a likely window instead of a single promised date, tells you how confident it is, and says so when you have not logged enough cycles. It was trained on a public research dataset, and in testing it was only slightly better than a plain average of your recent cycles - we show you that too.</p>
+      </div>
+      <div class="panel card-tint-orchid card">
+        <div class="kpi"><span class="lbl">Example estimate</span><span class="num">12 - 18 Dec</span><span class="lbl">Most likely window · confidence: moderate</span></div>
+        <div class="divider mt"></div>
+        <p class="small muted mt">Not a guaranteed date. Not for contraception or fertility planning.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="split">
+      <div>
+        <h2>Made around student life</h2>
+        <p>Exam weeks, hostel meals, irregular sleep. Let It Flow looks for gentle associations between how you live and how you feel, suggests affordable everyday foods like dal, rajma, chole and sprouts, and keeps a chat assistant that actually knows your logged dates and symptoms.</p>
+      </div>
+      <div class="panel card-tint-sage card">
+        <ul class="list-clean list-sage">
+          <li>Daily log for pain, flow, mood, sleep, stress and exam days</li>
+          <li>Student insights: associations, never causes</li>
+          <li>Doctor-ready PDF you can take to an appointment</li>
+          <li>Skip any question you don't want to answer</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="callout warn">
+      <strong>What Let It Flow is not.</strong> It does not diagnose PCOS, thyroid problems, endometriosis or any other condition, and it is not contraception or fertility advice. If you have severe pain, very heavy bleeding or no period for 3 months, please see a doctor.
+    </div>
+  </section>
+  <footer class="pub-foot">Let It Flow · Understand your cycle. Recognize irregularities. Make informed health decisions.</footer>
+</div>
+{% endblock %}
